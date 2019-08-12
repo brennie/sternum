@@ -1,7 +1,7 @@
 // Any copyright is dedicated to the Public Domain.
 // https://creativecommons.org/publicdomain/zero/1.0/
 
-mod test_impl_display;
+mod test_impl;
 
 use trybuild::TestCases;
 
@@ -12,6 +12,6 @@ fn compile_tests() {
     t.pass("tests/compile/just-derive.rs");
     t.compile_fail("tests/compile/require-enum.rs");
     t.compile_fail("tests/compile/require-unit-enum.rs");
-    t.pass("tests/compile/redefine-std-fmt-display.rs");
+    t.pass("tests/compile/redefine-std.rs");
     t.compile_fail("tests/compile/require-enum-variants.rs");
 }

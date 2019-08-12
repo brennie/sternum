@@ -12,6 +12,7 @@ name = "tests"
 path = "tests/tests.rs"
 
 [dependencies]
+proc-macro2 = "0.4.30"
 quote = "0.6"
 syn = { version = "0.15", features = ["extra-traits"] }
 

@@ -6,9 +6,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+#![recursion_limit = "128"]
+
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
+use proc_macro2;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error};
 
@@ -75,10 +78,18 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
         }
     }
 
-    Ok(impl_display(&ast.ident, variants.iter()))
+    let display_impl = impl_display(&ast.ident, variants.iter());
+    let from_str_impl = impl_from_str(&ast.ident, variants.iter(), &ast.vis);
+
+    let quoted = quote! {
+        #display_impl
+        #from_str_impl
+    };
+
+    Ok(quoted.into())
 }
 
-fn impl_display<'a, I>(name: &syn::Ident, variants: I) -> TokenStream
+fn impl_display<'a, I>(name: &syn::Ident, variants: I) -> proc_macro2::TokenStream
 where
     I: Iterator<Item = &'a syn::Variant>,
 {
@@ -91,7 +102,7 @@ where
         }
     });
 
-    let quoted = quote! {
+    quote! {
         impl ::std::fmt::Display for #name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 match self {
@@ -100,7 +111,49 @@ where
                 }
             }
         }
-    };
+    }
+}
 
-    quoted.into()
+fn impl_from_str<'a, I>(
+    name: &syn::Ident,
+    variants: I,
+    visibility: &syn::Visibility,
+) -> proc_macro2::TokenStream
+where
+    I: Iterator<Item = &'a syn::Variant>,
+{
+    let matches = variants.map(|variant| {
+        let ident = &variant.ident;
+        let lit: syn::Lit = syn::LitStr::new(&ident.to_string(), ident.span()).into();
+
+        quote! {
+            #lit => Ok(#name::#ident),
+        }
+    });
+
+    let error_ident = syn::Ident::new(&format!("Parse{}Error", name), name.span());
+
+    quote! {
+        #[derive(Debug, Eq, PartialEq)]
+        #visibility struct #error_ident (pub String);
+
+        impl ::std::fmt::Display for #error_ident {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                write!(f, "Could not parse `{}': unknown ident", self.0)
+            }
+        }
+
+        impl ::std::error::Error for #error_ident {}
+
+        impl ::std::str::FromStr for #name {
+            type Err = #error_ident;
+
+            fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
+                match s {
+                    #(#matches)*
+                    _ => Err(#error_ident(s.into())),
+                }
+            }
+        }
+    }
 }
