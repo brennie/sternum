@@ -1,0 +1,33 @@
+error: Sternum only supports unit enum variants (like Option::None)
+ --> $DIR/require-unit-enum.rs:8:5
+  |
+8 |     A1 {},
+  |     ^^^^^
+
+error: Sternum only supports unit enum variants (like Option::None)
+  --> $DIR/require-unit-enum.rs:13:5
+   |
+13 |     B1(u32),
+   |     ^^^^^^^
+
+error: Sternum only supports unit enum variants (like Option::None)
+  --> $DIR/require-unit-enum.rs:18:5
+   |
+18 | /     C1 {
+19 | |         a: u32,
+20 | |     }
+   | |_____^
+
+error: Sternum only supports unit enum variants (like Option::None)
+  --> $DIR/require-unit-enum.rs:27:5
+   |
+27 |     D3(u32),
+   |     ^^^^^^^
+
+error: Sternum only supports unit enum variants (like Option::None)
+  --> $DIR/require-unit-enum.rs:28:5
+   |
+28 | /     D4 {
+29 | |         a: u32,
+30 | |     },
+   | |_____^

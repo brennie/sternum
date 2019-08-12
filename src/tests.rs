@@ -9,4 +9,5 @@ fn compile_tests() {
 
     t.pass("src/tests/compile/just-derive.rs");
     t.compile_fail("src/tests/compile/require-enum.rs");
+    t.compile_fail("src/tests/compile/require-unit-enum.rs");
 }

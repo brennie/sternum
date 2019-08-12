@@ -53,6 +53,23 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
         }
     };
 
+    {
+        let variant_errors: Vec<Error> = variants
+            .iter()
+            .filter_map(|variant| match variant.fields {
+                syn::Fields::Unit => None,
+                syn::Fields::Named(..) | syn::Fields::Unnamed(..) => Some(Error::new_spanned(
+                    variant,
+                    "Sternum only supports unit enum variants (like Option::None)",
+                )),
+            })
+            .collect();
+
+        if variant_errors.len() != 0 {
+            return Err(ErrorList(variant_errors));
+        }
+    }
+
     let ts = quote! {};
 
     Ok(ts.into())
