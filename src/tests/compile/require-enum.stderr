@@ -1,0 +1,27 @@
+error: Sternum only supports enums
+ --> $DIR/require-enum.rs:7:1
+  |
+7 | struct A;
+  | ^^^^^^^^^
+
+error: Sternum only supports enums
+  --> $DIR/require-enum.rs:10:1
+   |
+10 | struct B {}
+   | ^^^^^^^^^^^
+
+error: Sternum only supports enums
+  --> $DIR/require-enum.rs:13:1
+   |
+13 | / struct C {
+14 | |     a: i32,
+15 | | }
+   | |_^
+
+error: Sternum only supports enums
+  --> $DIR/require-enum.rs:18:1
+   |
+18 | / union D {
+19 | |     a: i32,
+20 | | }
+   | |_^

@@ -9,6 +9,7 @@ proc-macro = true
 
 [dependencies]
 quote = "0.6"
+syn = { version = "0.15", features = ["extra-traits"] }
 
 [dev-dependencies]
 trybuild = "1.0"

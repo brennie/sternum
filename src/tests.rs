@@ -8,4 +8,5 @@ fn compile_tests() {
     let t = TestCases::new();
 
     t.pass("src/tests/compile/just-derive.rs");
+    t.compile_fail("src/tests/compile/require-enum.rs");
 }
