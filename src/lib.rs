@@ -8,9 +8,6 @@
 
 extern crate proc_macro;
 
-#[cfg(test)]
-mod tests;
-
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error};
@@ -70,7 +67,32 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
         }
     }
 
-    let ts = quote! {};
+    Ok(impl_display(&ast.ident, variants.iter()))
+}
 
-    Ok(ts.into())
+fn impl_display<'a, I>(name: &syn::Ident, variants: I) -> TokenStream
+where
+    I: Iterator<Item = &'a syn::Variant>,
+{
+    let matches = variants.map(|variant| {
+        let ident = &variant.ident;
+        let repr: syn::Lit = syn::LitStr::new(&ident.to_string(), ident.span()).into();
+
+        quote! {
+            #name::#ident => write!(f, "{}", #repr),
+        }
+    });
+
+    let quoted = quote! {
+        impl ::std::fmt::Display for #name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                match self {
+                    #(#matches)*
+
+                }
+            }
+        }
+    };
+
+    quoted.into()
 }
