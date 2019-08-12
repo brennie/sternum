@@ -50,6 +50,14 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
         }
     };
 
+    if variants.len() == 0 {
+        return Err(Error::new_spanned(
+            ast,
+            "Sternum only supports enums with at least one variant",
+        )
+        .into());
+    }
+
     {
         let variant_errors: Vec<Error> = variants
             .iter()

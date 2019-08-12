@@ -1,0 +1,5 @@
+error: Sternum only supports enums with at least one variant
+ --> $DIR/require-enum-variants.rs:4:1
+  |
+4 | enum A {}
+  | ^^^^^^^^^

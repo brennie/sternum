@@ -13,4 +13,5 @@ fn compile_tests() {
     t.compile_fail("tests/compile/require-enum.rs");
     t.compile_fail("tests/compile/require-unit-enum.rs");
     t.pass("tests/compile/redefine-std-fmt-display.rs");
+    t.compile_fail("tests/compile/require-enum-variants.rs");
 }
