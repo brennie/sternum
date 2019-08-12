@@ -12,4 +12,5 @@ fn compile_tests() {
     t.pass("tests/compile/just-derive.rs");
     t.compile_fail("tests/compile/require-enum.rs");
     t.compile_fail("tests/compile/require-unit-enum.rs");
+    t.pass("tests/compile/redefine-std-fmt-display.rs");
 }
