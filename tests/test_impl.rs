@@ -10,11 +10,19 @@ enum A {
     Baz,
 }
 
+#[derive(Debug, Eq, PartialEq, Sternum)]
+#[sternum(scoped)]
+enum B {
+    Qux,
+    Quux,
+    Corge,
+}
+
 #[test]
 fn impl_display() {
-    assert_eq!(format!("{}", A::Foo), "Foo");
-    assert_eq!(format!("{}", A::Bar), "Bar");
-    assert_eq!(format!("{}", A::Baz), "Baz");
+    assert_eq!(A::Foo.to_string(), "Foo");
+    assert_eq!(A::Bar.to_string(), "Bar");
+    assert_eq!(A::Baz.to_string(), "Baz");
 }
 
 #[test]
@@ -34,4 +42,29 @@ fn round_trip() {
     assert_eq!(str::parse::<A>(&A::Foo.to_string()), Ok(A::Foo));
     assert_eq!(str::parse::<A>(&A::Bar.to_string()), Ok(A::Bar));
     assert_eq!(str::parse::<A>(&A::Baz.to_string()), Ok(A::Baz));
+}
+
+#[test]
+fn impl_display_scoped() {
+    assert_eq!(B::Qux.to_string(), "B::Qux");
+    assert_eq!(B::Quux.to_string(), "B::Quux");
+    assert_eq!(B::Corge.to_string(), "B::Corge");
+}
+
+#[test]
+fn impl_from_str_scoped() {
+    assert_eq!(str::parse::<B>("B::Qux"), Ok(B::Qux));
+    assert_eq!(str::parse::<B>("B::Quux"), Ok(B::Quux));
+    assert_eq!(str::parse::<B>("B::Corge"), Ok(B::Corge));
+
+    assert_eq!(str::parse::<B>("Qux"), Err(ParseBError("Qux".into())));
+    assert_eq!(str::parse::<B>("Quux"), Err(ParseBError("Quux".into())));
+    assert_eq!(str::parse::<B>("Corge"), Err(ParseBError("Corge".into())));
+}
+
+#[test]
+fn round_trip_scoped() {
+    assert_eq!(str::parse::<B>(&B::Qux.to_string()), Ok(B::Qux));
+    assert_eq!(str::parse::<B>(&B::Quux.to_string()), Ok(B::Quux));
+    assert_eq!(str::parse::<B>(&B::Corge.to_string()), Ok(B::Corge));
 }

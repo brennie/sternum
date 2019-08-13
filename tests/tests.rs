@@ -14,4 +14,5 @@ fn compile_tests() {
     t.compile_fail("tests/compile/require-unit-enum.rs");
     t.pass("tests/compile/redefine-std.rs");
     t.compile_fail("tests/compile/require-enum-variants.rs");
+    t.compile_fail("tests/compile/invalid-attributes.rs");
 }

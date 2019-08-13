@@ -1,0 +1,29 @@
+error: Unexpected attribute #[sternum]; expected #[sternum(...)]
+ --> $DIR/invalid-attributes.rs:7:3
+  |
+7 | #[sternum]
+  |   ^^^^^^^
+
+error: Unexpected attribute #[sternum = ...]; expected #[sternum(...)]
+  --> $DIR/invalid-attributes.rs:14:3
+   |
+14 | #[sternum = "help"]
+   |   ^^^^^^^^^^^^^^^^
+
+error: Unexpected attribute #[sternum = ...]; expected #[sternum(...)]
+  --> $DIR/invalid-attributes.rs:20:3
+   |
+20 | #[sternum = 123]
+   |   ^^^^^^^^^^^^^
+
+error: Unexpected attribute `#[sternum(foo = "bar")]'
+  --> $DIR/invalid-attributes.rs:26:11
+   |
+26 | #[sternum(foo = "bar")]
+   |           ^^^^^^^^^^^
+
+error: Unexpected attribute `#[sternum(unknown)]'
+  --> $DIR/invalid-attributes.rs:32:11
+   |
+32 | #[sternum(unknown)]
+   |           ^^^^^^^

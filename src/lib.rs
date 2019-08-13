@@ -35,6 +35,11 @@ impl From<Error> for ErrorList {
     }
 }
 
+#[derive(Debug, Default, Eq, PartialEq)]
+struct Features {
+    scoped: bool,
+}
+
 #[proc_macro_derive(Sternum, attributes(sternum))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
@@ -78,8 +83,10 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
         }
     }
 
-    let display_impl = impl_display(&ast.ident, variants.iter());
-    let from_str_impl = impl_from_str(&ast.ident, variants.iter(), &ast.vis);
+    let features = parse_features(&ast.attrs)?;
+
+    let display_impl = impl_display(&ast.ident, variants.iter(), &features);
+    let from_str_impl = impl_from_str(&ast.ident, variants.iter(), &ast.vis, &features);
 
     let quoted = quote! {
         #display_impl
@@ -89,13 +96,23 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
     Ok(quoted.into())
 }
 
-fn impl_display<'a, I>(name: &syn::Ident, variants: I) -> proc_macro2::TokenStream
+fn impl_display<'a, I>(
+    name: &syn::Ident,
+    variants: I,
+    features: &Features,
+) -> proc_macro2::TokenStream
 where
     I: Iterator<Item = &'a syn::Variant>,
 {
     let matches = variants.map(|variant| {
         let ident = &variant.ident;
-        let repr: syn::Lit = syn::LitStr::new(&ident.to_string(), ident.span()).into();
+        let str_repr = if features.scoped {
+            format!("{}::{}", name, ident)
+        } else {
+            ident.to_string()
+        };
+
+        let repr: syn::Lit = syn::LitStr::new(&str_repr, ident.span()).into();
 
         quote! {
             #name::#ident => write!(f, "{}", #repr),
@@ -118,13 +135,20 @@ fn impl_from_str<'a, I>(
     name: &syn::Ident,
     variants: I,
     visibility: &syn::Visibility,
+    features: &Features,
 ) -> proc_macro2::TokenStream
 where
     I: Iterator<Item = &'a syn::Variant>,
 {
     let matches = variants.map(|variant| {
         let ident = &variant.ident;
-        let lit: syn::Lit = syn::LitStr::new(&ident.to_string(), ident.span()).into();
+        let repr = if features.scoped {
+            format!("{}::{}", name, ident)
+        } else {
+            ident.to_string()
+        };
+
+        let lit: syn::Lit = syn::LitStr::new(&repr, ident.span()).into();
 
         quote! {
             #lit => Ok(#name::#ident),
@@ -155,5 +179,64 @@ where
                 }
             }
         }
+    }
+}
+
+fn parse_features(attrs: &[syn::Attribute]) -> Result<Features, ErrorList> {
+    let mut errors = vec![];
+    let mut features = Features::default();
+
+    for attr in attrs {
+        let list = match get_meta_list(&attr) {
+            Ok(Some(list)) => list,
+            Ok(None) => continue,
+            Err(e) => {
+                errors.push(e);
+                continue;
+            }
+        };
+
+        for item in list.nested.iter() {
+            match item {
+                syn::NestedMeta::Meta(syn::Meta::Word(ref ident)) => match &*ident.to_string() {
+                    "scoped" => features.scoped = true,
+                    unknown => errors.push(Error::new_spanned(
+                        ident,
+                        format!("Unexpected attribute `#[sternum({})]'", unknown),
+                    )),
+                },
+
+                _ => errors.push(Error::new_spanned(
+                    item,
+                    format!("Unexpected attribute `#[sternum({})]'", quote! { #item },),
+                )),
+            }
+        }
+    }
+
+    if errors.len() == 0 {
+        Ok(features)
+    } else {
+        Err(ErrorList(errors))
+    }
+}
+
+fn get_meta_list(attr: &syn::Attribute) -> Result<Option<syn::MetaList>, Error> {
+    let meta = attr.parse_meta()?;
+
+    if meta.name() != "sternum" {
+        return Ok(None);
+    }
+
+    match meta {
+        syn::Meta::Word(..) => Err(Error::new_spanned(
+            meta,
+            "Unexpected attribute #[sternum]; expected #[sternum(...)]",
+        )),
+        syn::Meta::NameValue(..) => Err(Error::new_spanned(
+            meta,
+            "Unexpected attribute #[sternum = ...]; expected #[sternum(...)]",
+        )),
+        syn::Meta::List(meta_list) => Ok(Some(meta_list)),
     }
 }
