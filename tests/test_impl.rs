@@ -23,5 +23,15 @@ fn impl_from_str() {
     assert_eq!(str::parse::<A>("Bar"), Ok(A::Bar));
     assert_eq!(str::parse::<A>("Baz"), Ok(A::Baz));
 
-    assert_eq!(str::parse::<A>("unknown"), Err(ParseAError("unknown".into())));
+    assert_eq!(
+        str::parse::<A>("unknown"),
+        Err(ParseAError("unknown".into()))
+    );
+}
+
+#[test]
+fn round_trip() {
+    assert_eq!(str::parse::<A>(&A::Foo.to_string()), Ok(A::Foo));
+    assert_eq!(str::parse::<A>(&A::Bar.to_string()), Ok(A::Bar));
+    assert_eq!(str::parse::<A>(&A::Baz.to_string()), Ok(A::Baz));
 }
