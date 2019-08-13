@@ -2,6 +2,7 @@
 // https://creativecommons.org/publicdomain/zero/1.0/
 
 mod test_impl;
+mod test_impl_scoped;
 
 use trybuild::TestCases;
 
