@@ -10,8 +10,8 @@ autotests = false
 proc-macro = true
 
 [[test]]
-name = "tests"
-path = "tests/tests.rs"
+name = "test"
+path = "test/test.rs"
 
 [dependencies]
 proc-macro2 = "0.4.30"
