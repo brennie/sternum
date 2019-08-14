@@ -14,9 +14,9 @@ name = "test"
 path = "test/test.rs"
 
 [dependencies]
-proc-macro2 = "0.4.30"
-quote = "0.6"
-syn = { version = "0.15", features = ["extra-traits"] }
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "1.0", features = ["extra-traits"] }
 
 [dev-dependencies]
 trybuild = "1.0"

@@ -198,13 +198,16 @@ fn parse_features(attrs: &[syn::Attribute]) -> Result<Features, ErrorList> {
 
         for item in list.nested.iter() {
             match item {
-                syn::NestedMeta::Meta(syn::Meta::Word(ref ident)) => match &*ident.to_string() {
-                    "scoped" => features.scoped = true,
-                    unknown => errors.push(Error::new_spanned(
-                        ident,
-                        format!("Unexpected attribute `#[sternum({})]'", unknown),
-                    )),
-                },
+                syn::NestedMeta::Meta(syn::Meta::Path(ref path)) => {
+                    if path.is_ident("scoped") {
+                        features.scoped = true;
+                    } else {
+                        errors.push(Error::new_spanned(
+                            path,
+                            format!("Unexpected attribute `#[sternum({})]'", quote! { #path }
+                                    )));
+                    }
+                }
 
                 _ => errors.push(Error::new_spanned(
                     item,
@@ -224,12 +227,12 @@ fn parse_features(attrs: &[syn::Attribute]) -> Result<Features, ErrorList> {
 fn get_meta_list(attr: &syn::Attribute) -> Result<Option<syn::MetaList>, Error> {
     let meta = attr.parse_meta()?;
 
-    if meta.name() != "sternum" {
+    if !meta.path().is_ident("sternum") {
         return Ok(None);
     }
 
     match meta {
-        syn::Meta::Word(..) => Err(Error::new_spanned(
+        syn::Meta::Path(..) => Err(Error::new_spanned(
             meta,
             "Unexpected attribute #[sternum]; expected #[sternum(...)]",
         )),
