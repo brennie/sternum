@@ -8,36 +8,20 @@
 
 #![recursion_limit = "128"]
 
+mod error;
+
 extern crate proc_macro;
 
-use proc_macro::TokenStream;
-use proc_macro2;
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error};
 
-struct ErrorList(Vec<Error>);
+use crate::error::ErrorList;
 
-impl ErrorList {
-    fn to_compile_error(self) -> TokenStream {
-        let errors = self.0.iter().map(Error::to_compile_error);
-
-        let quoted = quote! {
-            #(#errors)*
-        };
-
-        quoted.into()
-    }
-}
-
-impl From<Error> for ErrorList {
-    fn from(e: Error) -> Self {
-        ErrorList(vec![e])
-    }
-}
-
+/// The features that the Sternum derive should use.
 #[derive(Debug, Default, Eq, PartialEq)]
 struct Features {
-    scoped: bool,
+    pub scoped: bool,
 }
 
 /// The custom derive for the [`Sternum`][sternum::Sternum] trait.
@@ -49,11 +33,11 @@ struct Features {
 /// [std::fmt::Display]: https://doc.rust-lang.org/std/std/trait.Display.html
 /// [std::str::FromStr]: https://doc.rust-lang.org/std/str/trait.FromStr.html
 #[proc_macro_derive(Sternum, attributes(sternum))]
-pub fn derive(input: TokenStream) -> TokenStream {
+pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
 
     match derive_impl(&ast) {
-        Ok(ts) => ts,
+        Ok(ts) => ts.into(),
         Err(e) => e.to_compile_error().into(),
     }
 }
@@ -106,7 +90,7 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
     Ok(quoted.into())
 }
 
-fn impl_sternum(type_name: &syn::Ident) -> proc_macro2::TokenStream {
+fn impl_sternum(type_name: &syn::Ident) -> TokenStream {
     let type_name_as_str = type_name.to_string();
 
     quote! {
@@ -119,11 +103,7 @@ fn impl_sternum(type_name: &syn::Ident) -> proc_macro2::TokenStream {
     }
 }
 
-fn impl_display<'a, I>(
-    type_name: &syn::Ident,
-    variants: I,
-    features: &Features,
-) -> proc_macro2::TokenStream
+fn impl_display<'a, I>(type_name: &syn::Ident, variants: I, features: &Features) -> TokenStream
 where
     I: Iterator<Item = &'a syn::Variant>,
 {
@@ -154,11 +134,7 @@ where
     }
 }
 
-fn impl_from_str<'a, I>(
-    type_name: &syn::Ident,
-    variants: I,
-    features: &Features,
-) -> proc_macro2::TokenStream
+fn impl_from_str<'a, I>(type_name: &syn::Ident, variants: I, features: &Features) -> TokenStream
 where
     I: Iterator<Item = &'a syn::Variant>,
 {
