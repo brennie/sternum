@@ -85,10 +85,12 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
 
     let features = parse_features(&ast.attrs)?;
 
+    let sternum_impl = impl_sternum(&ast.ident);
     let display_impl = impl_display(&ast.ident, variants.iter(), &features);
-    let from_str_impl = impl_from_str(&ast.ident, variants.iter(), &ast.vis, &features);
+    let from_str_impl = impl_from_str(&ast.ident, variants.iter(), &features);
 
     let quoted = quote! {
+        #sternum_impl
         #display_impl
         #from_str_impl
     };
@@ -96,8 +98,21 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
     Ok(quoted.into())
 }
 
+fn impl_sternum(type_name: &syn::Ident) -> proc_macro2::TokenStream {
+    let type_name_as_str = type_name.to_string();
+
+    quote! {
+        impl ::sternum::Sternum for #type_name {
+            fn type_name() -> &'static str {
+                return #type_name_as_str;
+            }
+        }
+
+    }
+}
+
 fn impl_display<'a, I>(
-    name: &syn::Ident,
+    type_name: &syn::Ident,
     variants: I,
     features: &Features,
 ) -> proc_macro2::TokenStream
@@ -107,7 +122,7 @@ where
     let matches = variants.map(|variant| {
         let ident = &variant.ident;
         let str_repr = if features.scoped {
-            format!("{}::{}", name, ident)
+            format!("{}::{}", type_name, ident)
         } else {
             ident.to_string()
         };
@@ -115,12 +130,12 @@ where
         let repr: syn::Lit = syn::LitStr::new(&str_repr, ident.span()).into();
 
         quote! {
-            #name::#ident => write!(f, "{}", #repr),
+            #type_name::#ident => write!(f, "{}", #repr),
         }
     });
 
     quote! {
-        impl ::std::fmt::Display for #name {
+        impl ::std::fmt::Display for #type_name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 match self {
                     #(#matches)*
@@ -132,9 +147,8 @@ where
 }
 
 fn impl_from_str<'a, I>(
-    name: &syn::Ident,
+    type_name: &syn::Ident,
     variants: I,
-    visibility: &syn::Visibility,
     features: &Features,
 ) -> proc_macro2::TokenStream
 where
@@ -143,7 +157,7 @@ where
     let matches = variants.map(|variant| {
         let ident = &variant.ident;
         let repr = if features.scoped {
-            format!("{}::{}", name, ident)
+            format!("{}::{}", type_name, ident)
         } else {
             ident.to_string()
         };
@@ -151,31 +165,18 @@ where
         let lit: syn::Lit = syn::LitStr::new(&repr, ident.span()).into();
 
         quote! {
-            #lit => Ok(#name::#ident),
+            #lit => Ok(#type_name::#ident),
         }
     });
 
-    let error_ident = syn::Ident::new(&format!("Parse{}Error", name), name.span());
-
     quote! {
-        #[derive(Debug, Eq, PartialEq)]
-        #visibility struct #error_ident (pub String);
-
-        impl ::std::fmt::Display for #error_ident {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                write!(f, "Could not parse `{}': unknown ident", self.0)
-            }
-        }
-
-        impl ::std::error::Error for #error_ident {}
-
-        impl ::std::str::FromStr for #name {
-            type Err = #error_ident;
+        impl ::std::str::FromStr for #type_name {
+            type Err = ::sternum::UnknownVariantError<#type_name>;
 
             fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
                 match s {
                     #(#matches)*
-                    _ => Err(#error_ident(s.into())),
+                    _ => Err(::sternum::UnknownVariantError::new(s)),
                 }
             }
         }
@@ -204,8 +205,8 @@ fn parse_features(attrs: &[syn::Attribute]) -> Result<Features, ErrorList> {
                     } else {
                         errors.push(Error::new_spanned(
                             path,
-                            format!("Unexpected attribute `#[sternum({})]'", quote! { #path }
-                                    )));
+                            format!("Unexpected attribute `#[sternum({})]'", quote! { #path }),
+                        ));
                     }
                 }
 

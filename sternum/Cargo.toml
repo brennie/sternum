@@ -1,0 +1,17 @@
+[package]
+name = "sternum"
+version = "0.1.0"
+authors = ["Barret Rennie <barret@brennie.ca>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+autotests = false
+
+[[test]]
+name = "test"
+path = "test/test.rs"
+
+[dependencies]
+sternum_derive = { version = "0.1.0", path = "../sternum_derive" }
+
+[dev-dependencies]
+trybuild = "1.0"

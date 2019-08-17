@@ -1,7 +1,7 @@
 // Any copyright is dedicated to the Public Domain.
 // https://creativecommons.org/publicdomain/zero/1.0/
 
-use sternum::Sternum;
+use sternum::{Sternum, UnknownVariantError};
 
 #[derive(Debug, Eq, PartialEq, Sternum)]
 #[sternum(scoped)]
@@ -24,9 +24,18 @@ fn impl_from_str() {
     assert_eq!(str::parse::<Enum>("Enum::Bar"), Ok(Enum::Bar));
     assert_eq!(str::parse::<Enum>("Enum::Baz"), Ok(Enum::Baz));
 
-    assert_eq!(str::parse::<Enum>("Foo"), Err(ParseEnumError("Foo".into())));
-    assert_eq!(str::parse::<Enum>("Bar"), Err(ParseEnumError("Bar".into())));
-    assert_eq!(str::parse::<Enum>("Baz"), Err(ParseEnumError("Baz".into())));
+    assert_eq!(
+        str::parse::<Enum>("Foo"),
+        Err(UnknownVariantError::new("Foo"))
+    );
+    assert_eq!(
+        str::parse::<Enum>("Bar"),
+        Err(UnknownVariantError::new("Bar"))
+    );
+    assert_eq!(
+        str::parse::<Enum>("Baz"),
+        Err(UnknownVariantError::new("Baz"))
+    );
 }
 
 #[test]

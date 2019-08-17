@@ -1,7 +1,7 @@
 // Any copyright is dedicated to the Public Domain.
 // https://creativecommons.org/publicdomain/zero/1.0/
 
-use sternum::Sternum;
+use sternum::{Sternum, UnknownVariantError};
 
 #[derive(Debug, Eq, PartialEq, Sternum)]
 enum Enum {
@@ -25,7 +25,7 @@ fn impl_from_str() {
 
     assert_eq!(
         str::parse::<Enum>("unknown"),
-        Err(ParseEnumError("unknown".into()))
+        Err(UnknownVariantError::new("unknown")),
     );
 }
 
