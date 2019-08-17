@@ -6,6 +6,84 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! # Sternum
+//!
+//! Sternum is a derive macro for generarting Enum <-> String conversions. Specifically, it will
+//! generate [`Display`][std::fmt::Display] and [`FromStr`][std::str::FromStr] implementations for
+//! your enum.
+//!
+//!
+//! # Example
+//! ```
+//! # use sternum::Sternum;
+//! #[derive(Debug, Eq, PartialEq, Sternum)]
+//! enum Kind {
+//!     Foo,
+//!     Bar,
+//!     Baz
+//! }
+//!
+//! // Display
+//! assert_eq!(Kind::Foo.to_string(), "Foo");
+//! assert_eq!(Kind::Bar.to_string(), "Bar");
+//! assert_eq!(Kind::Baz.to_string(), "Baz");
+//!
+//! // FromStr
+//! assert_eq!(str::parse::<Kind>("Foo"), Ok(Kind::Foo));
+//! assert_eq!(str::parse::<Kind>("Bar"), Ok(Kind::Bar));
+//! assert_eq!(str::parse::<Kind>("Baz"), Ok(Kind::Baz));
+//! ```
+//!
+//! ## Attributes
+//!
+//! Sternum is customizable through the `#![sternum(...)]` attribute macro, which
+//! supports the following:
+//!
+//! 1. Scoped Names
+//!
+//!    By default, the generated `Display` and `FromStr` implementations are unscoped. To support
+//!    names scoped under their enumeration's name, the `#[sternum(scoped)]` attribute can be
+//!    applied to the entire enum:
+//!
+//!    ```
+//!    # use sternum::{Sternum, UnknownVariantError};
+//!
+//!    #[derive(Debug, Eq, PartialEq, Sternum)]
+//!    #[sternum(scoped)]
+//!    enum Enum {
+//!        Variant,
+//!    }
+//!
+//!    assert_eq!(Enum::Variant.to_string(), "Enum::Variant");
+//!    assert_eq!(str::parse::<Enum>("Enum::Variant"), Ok(Enum::Variant));
+//!
+//!    assert_eq!(str::parse::<Enum>("Variant"), Err(UnknownVariantError::new("Variant")));
+//!    ```
+//!
+//! ## `FromStr`
+//!
+//! Each `FromStr` implementation will use the
+//! [`UnknownVariantError`][sternum::UnknownVariantError] type for
+//! [`FromStr::Err`][std::str::FromStr::Err].
+//!
+//! ```
+//! # use sternum::{Sternum, UnknownVariantError};
+//!
+//! #[derive(Debug, Eq, PartialEq, Sternum)]
+//! enum Enum {
+//!     Foo,
+//! }
+//!
+//! assert_eq!(str::parse::<Enum>("unknown"), Err(UnknownVariantError::new("unknown")));
+//!
+//! ```
+//!
+//! [std::fmt::Display]: https://doc.rust-lang.org/std/fmt/trait.Display.html
+//! [std::str::FromStr]: https://doc.rust-lang.org/std/str/trait.FromStr.html
+//! [std::str::FromStr::Err]: https://doc.rust-lang.org/std/str/trait.FromStr.html#associatedtype.Err
+//!
+//! [sternum::UnknownVariantError]: struct.UnknownVariantError.html
+
 use std::error;
 use std::fmt;
 use std::marker::PhantomData;
@@ -30,7 +108,7 @@ impl<T> UnknownVariantError<T> {
     }
 }
 
-/// The Sternum trait.
+/// The Sternum trait
 pub trait Sternum {
     /// The name of the type.
     ///
