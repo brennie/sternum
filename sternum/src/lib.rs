@@ -13,12 +13,15 @@ use std::marker::PhantomData;
 pub use sternum_derive::Sternum;
 
 #[derive(Eq, PartialEq)]
+/// An error indicating that a string could not be parsed as a `T` variant.
 pub struct UnknownVariantError<T> {
+    /// The string that could not be parsed.
     pub variant: String,
     _ty: PhantomData<T>,
 }
 
 impl<T> UnknownVariantError<T> {
+    /// Generate a new error.
     pub fn new(variant: &str) -> Self {
         UnknownVariantError {
             variant: variant.into(),
@@ -27,7 +30,14 @@ impl<T> UnknownVariantError<T> {
     }
 }
 
+/// The Sternum trait.
 pub trait Sternum {
+    /// The name of the type.
+    ///
+    /// This is used inside the `Debug` and `Display` implementations of
+    /// [`UnknownVariantError`][sternum::UnknownVariantError].
+    ///
+    /// [sternum::UnknownVariantError]: struct.UnknownVariantError.html
     fn type_name() -> &'static str;
 }
 
@@ -35,6 +45,8 @@ impl<T> fmt::Debug for UnknownVariantError<T>
 where
     T: Sternum,
 {
+    // We cannot derive Debug for UnknownVariantError<T> since T may not implement Debug, but we
+    // don't actually need to debug print any T values.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct(&format!(
             "UnknownVariantError<{}>",

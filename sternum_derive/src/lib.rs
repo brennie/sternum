@@ -40,6 +40,14 @@ struct Features {
     scoped: bool,
 }
 
+/// The custom derive for the [`Sternum`][sternum::Sternum] trait.
+///
+/// Deriving this trait will also derive [`Display`][std::fmt::Display] and
+/// [`FromStr`][std::str::FromStr] implementations.
+///
+/// [sternum::Sternum]: ../sternum/trait.Sternum.html
+/// [std::fmt::Display]: https://doc.rust-lang.org/std/std/trait.Display.html
+/// [std::str::FromStr]: https://doc.rust-lang.org/std/str/trait.FromStr.html
 #[proc_macro_derive(Sternum, attributes(sternum))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
