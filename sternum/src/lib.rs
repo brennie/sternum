@@ -47,7 +47,6 @@
 //!
 //!    ```
 //!    # use sternum::{Sternum, UnknownVariantError};
-//!
 //!    #[derive(Debug, Eq, PartialEq, Sternum)]
 //!    #[sternum(scoped)]
 //!    enum Enum {
@@ -69,7 +68,6 @@
 //!
 //!    ```
 //!    # use sternum::{Sternum, UnknownVariantError};
-//!
 //!    #[derive(Debug, Eq, PartialEq, Sternum)]
 //!    #[sternum(transform = uppercase)]
 //!    enum Yelling {
@@ -109,7 +107,6 @@
 //!
 //!    ```
 //!    # use sternum::Sternum;
-//!
 //!    #[derive(Debug, Eq, PartialEq, Sternum)]
 //!    #[sternum(case_insensitive)]
 //!    enum Enum {
@@ -133,7 +130,6 @@
 //!
 //! ```
 //! # use sternum::{Sternum, UnknownVariantError};
-//!
 //! #[derive(Debug, Eq, PartialEq, Sternum)]
 //! enum Enum {
 //!     Foo,
