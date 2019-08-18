@@ -1,28 +1,28 @@
-error: Unexpected attribute #[sternum]; expected #[sternum(...)]
- --> $DIR/invalid-attributes.rs:7:3
+error: expected attribute arguments: #[sternum(...)]
+ --> $DIR/invalid-attributes.rs:7:1
   |
 7 | #[sternum]
-  |   ^^^^^^^
+  | ^^^^^^^^^^
 
-error: Unexpected attribute #[sternum = ...]; expected #[sternum(...)]
-  --> $DIR/invalid-attributes.rs:14:3
+error: unexpected token in attribute arguments
+  --> $DIR/invalid-attributes.rs:14:11
    |
 14 | #[sternum = "help"]
-   |   ^^^^^^^^^^^^^^^^
+   |           ^
 
-error: Unexpected attribute #[sternum = ...]; expected #[sternum(...)]
-  --> $DIR/invalid-attributes.rs:20:3
+error: unexpected token in attribute arguments
+  --> $DIR/invalid-attributes.rs:20:11
    |
 20 | #[sternum = 123]
-   |   ^^^^^^^^^^^^^
+   |           ^
 
-error: Unexpected attribute `#[sternum(foo = "bar")]'
+error: Unknown argument `foo' for #[sternum] attribute
   --> $DIR/invalid-attributes.rs:26:11
    |
 26 | #[sternum(foo = "bar")]
-   |           ^^^^^^^^^^^
+   |           ^^^
 
-error: Unexpected attribute `#[sternum(unknown)]'
+error: Unknown argument `unknown' for #[sternum] attribute
   --> $DIR/invalid-attributes.rs:32:11
    |
 32 | #[sternum(unknown)]

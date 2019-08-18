@@ -9,6 +9,7 @@
 #![recursion_limit = "128"]
 
 mod error;
+mod features;
 
 extern crate proc_macro;
 
@@ -17,12 +18,7 @@ use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error};
 
 use crate::error::ErrorList;
-
-/// The features that the Sternum derive should use.
-#[derive(Debug, Default, Eq, PartialEq)]
-struct Features {
-    pub scoped: bool,
-}
+use crate::features::{parse_features, FeatureSet};
 
 /// The custom derive for the [`Sternum`][sternum::Sternum] trait.
 ///
@@ -103,7 +99,7 @@ fn impl_sternum(type_name: &syn::Ident) -> TokenStream {
     }
 }
 
-fn impl_display<'a, I>(type_name: &syn::Ident, variants: I, features: &Features) -> TokenStream
+fn impl_display<'a, I>(type_name: &syn::Ident, variants: I, features: &FeatureSet) -> TokenStream
 where
     I: Iterator<Item = &'a syn::Variant>,
 {
@@ -134,7 +130,7 @@ where
     }
 }
 
-fn impl_from_str<'a, I>(type_name: &syn::Ident, variants: I, features: &Features) -> TokenStream
+fn impl_from_str<'a, I>(type_name: &syn::Ident, variants: I, features: &FeatureSet) -> TokenStream
 where
     I: Iterator<Item = &'a syn::Variant>,
 {
@@ -164,67 +160,5 @@ where
                 }
             }
         }
-    }
-}
-
-fn parse_features(attrs: &[syn::Attribute]) -> Result<Features, ErrorList> {
-    let mut errors = vec![];
-    let mut features = Features::default();
-
-    for attr in attrs {
-        let list = match get_meta_list(&attr) {
-            Ok(Some(list)) => list,
-            Ok(None) => continue,
-            Err(e) => {
-                errors.push(e);
-                continue;
-            }
-        };
-
-        for item in list.nested.iter() {
-            match item {
-                syn::NestedMeta::Meta(syn::Meta::Path(ref path)) => {
-                    if path.is_ident("scoped") {
-                        features.scoped = true;
-                    } else {
-                        errors.push(Error::new_spanned(
-                            path,
-                            format!("Unexpected attribute `#[sternum({})]'", quote! { #path }),
-                        ));
-                    }
-                }
-
-                _ => errors.push(Error::new_spanned(
-                    item,
-                    format!("Unexpected attribute `#[sternum({})]'", quote! { #item },),
-                )),
-            }
-        }
-    }
-
-    if errors.len() == 0 {
-        Ok(features)
-    } else {
-        Err(ErrorList(errors))
-    }
-}
-
-fn get_meta_list(attr: &syn::Attribute) -> Result<Option<syn::MetaList>, Error> {
-    let meta = attr.parse_meta()?;
-
-    if !meta.path().is_ident("sternum") {
-        return Ok(None);
-    }
-
-    match meta {
-        syn::Meta::Path(..) => Err(Error::new_spanned(
-            meta,
-            "Unexpected attribute #[sternum]; expected #[sternum(...)]",
-        )),
-        syn::Meta::NameValue(..) => Err(Error::new_spanned(
-            meta,
-            "Unexpected attribute #[sternum = ...]; expected #[sternum(...)]",
-        )),
-        syn::Meta::List(meta_list) => Ok(Some(meta_list)),
     }
 }
