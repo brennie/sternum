@@ -60,6 +60,43 @@
 //!    assert_eq!(str::parse::<Enum>("Variant"), Err(UnknownVariantError::new("Variant")));
 //!    ```
 //!
+//! 2. Transforms
+//!
+//!    By default, the generated `Display` and `FromStr` implementations match the case of the
+//!    enumeration and variants. Providing `transform = uppercase` or `transform = lowercase` to
+//!    the `#[sternum(...)]` attribute will change these implementations to use either
+//!    all-uppercase or all-lowercase values:
+//!
+//!    ```
+//!    # use sternum::{Sternum, UnknownVariantError};
+//!
+//!    #[derive(Debug, Eq, PartialEq, Sternum)]
+//!    #[sternum(transform = uppercase)]
+//!    enum Yelling {
+//!        LoudNoises,
+//!    }
+//!
+//!    #[derive(Debug, Eq, PartialEq, Sternum)]
+//!    #[sternum(transform = lowercase)]
+//!    enum Whispering {
+//!        Quiet,
+//!    }
+//!
+//!    assert_eq!(Yelling::LoudNoises.to_string(), "LOUDNOISES");
+//!    assert_eq!(str::parse::<Yelling>("LOUDNOISES"), Ok(Yelling::LoudNoises));
+//!    assert_eq!(
+//!        str::parse::<Yelling>("LoudNoises"),
+//!        Err(UnknownVariantError::new("LoudNoises")),
+//!    );
+//!
+//!    assert_eq!(Whispering::Quiet.to_string(), "quiet");
+//!    assert_eq!(str::parse::<Whispering>("quiet"), Ok(Whispering::Quiet));
+//!    assert_eq!(
+//!        str::parse::<Whispering>("Quiet"),
+//!        Err(UnknownVariantError::new("Quiet")),
+//!    );
+//!    ```
+//!
 //! ## `FromStr`
 //!
 //! Each `FromStr` implementation will use the

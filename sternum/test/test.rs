@@ -3,6 +3,7 @@
 
 mod test_impl;
 mod test_impl_scoped;
+mod test_impl_transform;
 
 use trybuild::TestCases;
 

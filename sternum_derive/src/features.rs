@@ -20,6 +20,14 @@ use crate::features::parse::{RawFeature, RawFeatures};
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct FeatureSet {
     pub scoped: bool,
+    pub transform: Option<TransformKind>,
+}
+
+/// An uppercase or lowercase transform.
+#[derive(Debug, Eq, PartialEq)]
+pub enum TransformKind {
+    Uppercase,
+    Lowercase,
 }
 
 /// A singular feature that effects the behaviour of Sternum.
@@ -38,14 +46,25 @@ impl TryFrom<RawFeature> for Feature {
     type Error = Error;
 
     fn try_from(raw: RawFeature) -> Result<Self, Self::Error> {
-        let feature = match raw {
-            RawFeature::Scoped { .. } => Feature {
-                kind: FeatureKind::Scoped,
-                raw: raw,
-            },
+        let kind = match raw {
+            RawFeature::Scoped { .. } => FeatureKind::Scoped,
+            RawFeature::Transform { ref value, .. } => {
+                let trans = match &*value.to_string() {
+                    "uppercase" => TransformKind::Uppercase,
+                    "lowercase" => TransformKind::Lowercase,
+                    _ => return Err(Error::new_spanned(
+                        value,
+                        "Unexpected value for #[sternum(transform = ...)]; expected `uppercase' or `lowercase'")),
+                };
+
+                FeatureKind::Transform(trans)
+            }
         };
 
-        Ok(feature)
+        Ok(Feature {
+            kind,
+            raw,
+        })
     }
 }
 
@@ -57,6 +76,7 @@ impl TryFrom<RawFeature> for Feature {
 #[derive(Debug, Eq, PartialEq)]
 enum FeatureKind {
     Scoped,
+    Transform(TransformKind),
 }
 
 impl FeatureSet {
@@ -69,6 +89,16 @@ impl FeatureSet {
         match f.kind {
             Scoped => {
                 self.scoped = true;
+            }
+
+            Transform(trans) => match &self.transform {
+                Some(prev_trans) => {
+                    if *prev_trans != trans {
+                        return Err(Error::new_spanned(f.raw, "Repeated"));
+                    }
+                }
+
+                None => self.transform = Some(trans),
             }
         }
 

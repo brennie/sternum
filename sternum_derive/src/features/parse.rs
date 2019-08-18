@@ -18,6 +18,11 @@ use syn::{Error, Ident, Token};
 #[derive(Debug, Eq, PartialEq)]
 pub(super) enum RawFeature {
     Scoped { ident: Ident },
+    Transform {
+        ident: Ident,
+        eq: Token![=],
+        value: Ident,
+    },
 }
 
 /// The comma-separated list of tokens that make up the arguments to the `#[sternum(...)]`
@@ -37,6 +42,15 @@ impl ToTokens for RawFeature {
 
         match self {
             Scoped { ref ident } => ident.to_tokens(tokens),
+            Transform {
+                ref ident,
+                ref eq,
+                ref value,
+            } => {
+                ident.to_tokens(tokens);
+                eq.to_tokens(tokens);
+                value.to_tokens(tokens);
+            }
         }
     }
 }
@@ -50,6 +64,14 @@ impl Parse for RawFeature {
 
         let feature = match &*ident_name {
             "scoped" => Scoped { ident },
+
+            "transform" => {
+                Transform {
+                    ident,
+                    eq: input.parse()?,
+                    value: input.parse()?,
+                }
+            }
 
             _ => {
                 return Err(Error::new_spanned(

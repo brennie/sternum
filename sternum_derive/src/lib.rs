@@ -18,7 +18,7 @@ use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error};
 
 use crate::error::ErrorList;
-use crate::features::{parse_features, FeatureSet};
+use crate::features::{parse_features, FeatureSet, TransformKind};
 
 /// The custom derive for the [`Sternum`][sternum::Sternum] trait.
 ///
@@ -99,22 +99,33 @@ fn impl_sternum(type_name: &syn::Ident) -> TokenStream {
     }
 }
 
+
 fn impl_display<'a, I>(type_name: &syn::Ident, variants: I, features: &FeatureSet) -> TokenStream
 where
     I: Iterator<Item = &'a syn::Variant>,
 {
     let matches = variants.map(|variant| {
         let ident = &variant.ident;
-        let str_repr = if features.scoped {
+
+        let repr = if features.scoped {
             format!("{}::{}", type_name, ident)
         } else {
             ident.to_string()
         };
 
-        let repr: syn::Lit = syn::LitStr::new(&str_repr, ident.span()).into();
+        let repr = if let Some(ref trans) = &features.transform {
+            match trans {
+                TransformKind::Uppercase => repr.to_uppercase(),
+                TransformKind::Lowercase => repr.to_lowercase(),
+            }
+        } else {
+            repr
+        };
+
+        let repr: syn::Lit = syn::LitStr::new(&repr, ident.span()).into();
 
         quote! {
-            #type_name::#ident => write!(f, "{}", #repr),
+            #type_name::#ident => write!(f, #repr),
         }
     });
 
@@ -123,7 +134,6 @@ where
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 match self {
                     #(#matches)*
-
                 }
             }
         }
@@ -140,6 +150,15 @@ where
             format!("{}::{}", type_name, ident)
         } else {
             ident.to_string()
+        };
+
+        let repr = if let Some(ref trans) = &features.transform {
+            match trans {
+                TransformKind::Uppercase => repr.to_uppercase(),
+                TransformKind::Lowercase => repr.to_lowercase(),
+            }
+        } else {
+            repr
         };
 
         let lit: syn::Lit = syn::LitStr::new(&repr, ident.span()).into();
