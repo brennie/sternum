@@ -65,16 +65,33 @@ fn impl_from_str() {
         str::parse::<LowercaseEnum>("Baz"),
         Err(UnknownVariantError::new("Baz"))
     );
-
 }
 
 #[test]
 fn round_trip() {
-    assert_eq!(str::parse::<UppercaseEnum>(&UppercaseEnum::Foo.to_string()), Ok(UppercaseEnum::Foo));
-    assert_eq!(str::parse::<UppercaseEnum>(&UppercaseEnum::Bar.to_string()), Ok(UppercaseEnum::Bar));
-    assert_eq!(str::parse::<UppercaseEnum>(&UppercaseEnum::Baz.to_string()), Ok(UppercaseEnum::Baz));
+    assert_eq!(
+        str::parse::<UppercaseEnum>(&UppercaseEnum::Foo.to_string()),
+        Ok(UppercaseEnum::Foo)
+    );
+    assert_eq!(
+        str::parse::<UppercaseEnum>(&UppercaseEnum::Bar.to_string()),
+        Ok(UppercaseEnum::Bar)
+    );
+    assert_eq!(
+        str::parse::<UppercaseEnum>(&UppercaseEnum::Baz.to_string()),
+        Ok(UppercaseEnum::Baz)
+    );
 
-    assert_eq!(str::parse::<LowercaseEnum>(&LowercaseEnum::Foo.to_string()), Ok(LowercaseEnum::Foo));
-    assert_eq!(str::parse::<LowercaseEnum>(&LowercaseEnum::Bar.to_string()), Ok(LowercaseEnum::Bar));
-    assert_eq!(str::parse::<LowercaseEnum>(&LowercaseEnum::Baz.to_string()), Ok(LowercaseEnum::Baz));
+    assert_eq!(
+        str::parse::<LowercaseEnum>(&LowercaseEnum::Foo.to_string()),
+        Ok(LowercaseEnum::Foo)
+    );
+    assert_eq!(
+        str::parse::<LowercaseEnum>(&LowercaseEnum::Bar.to_string()),
+        Ok(LowercaseEnum::Bar)
+    );
+    assert_eq!(
+        str::parse::<LowercaseEnum>(&LowercaseEnum::Baz.to_string()),
+        Ok(LowercaseEnum::Baz)
+    );
 }

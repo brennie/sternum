@@ -1,0 +1,35 @@
+error: The variant `VARIANT' is a case-insensitive match of a previous identifier (`Variant')
+  --> $DIR/case-insensitive-variants.rs:18:5
+   |
+18 |     VARIANT,
+   |     ^^^^^^^
+
+error: The variant `VarIaNT' is a case-insensitive match of a previous identifier (`Variant')
+  --> $DIR/case-insensitive-variants.rs:19:5
+   |
+19 |     VarIaNT,
+   |     ^^^^^^^
+
+error: The variant `VARIANT' is a case-insensitive match of a previous identifier (`Variant')
+  --> $DIR/case-insensitive-variants.rs:26:5
+   |
+26 |     VARIANT,
+   |     ^^^^^^^
+
+error: The variant `VarIaNT' is a case-insensitive match of a previous identifier (`Variant')
+  --> $DIR/case-insensitive-variants.rs:27:5
+   |
+27 |     VarIaNT,
+   |     ^^^^^^^
+
+error: The variant `VARIANT' is a case-insensitive match of a previous identifier (`Variant')
+  --> $DIR/case-insensitive-variants.rs:34:5
+   |
+34 |     VARIANT,
+   |     ^^^^^^^
+
+error: The variant `VarIaNT' is a case-insensitive match of a previous identifier (`Variant')
+  --> $DIR/case-insensitive-variants.rs:35:5
+   |
+35 |     VarIaNT,
+   |     ^^^^^^^

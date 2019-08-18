@@ -13,9 +13,12 @@ mod features;
 
 extern crate proc_macro;
 
+use std::collections::HashMap;
+use std::convert::identity;
+
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Error};
+use syn::{parse_macro_input, DeriveInput, Error, Ident};
 
 use crate::error::ErrorList;
 use crate::features::{parse_features, FeatureSet, TransformKind};
@@ -73,6 +76,32 @@ fn derive_impl(ast: &DeriveInput) -> Result<TokenStream, ErrorList> {
 
     let features = parse_features(&ast.attrs)?;
 
+    if features.case_insensitive || features.transform.is_some() {
+        let variant_errors: Vec<Error> = variants
+            .iter()
+            .scan(HashMap::<String, &Ident>::new(), |variant_names, variant| {
+                let name = variant.ident.to_string().to_lowercase();
+
+                if let Some(ref prev_ident) = variant_names.get(&name) {
+                    Some(Some(Error::new_spanned(
+                        &variant.ident,
+                        format!("The variant `{}' is a case-insensitive match of a previous identifier (`{}')",
+                            variant.ident.to_string(),
+                            prev_ident.to_string(),
+                        ))))
+                } else {
+                    variant_names.insert(name, &variant.ident);
+                    Some(None)
+                }
+            })
+            .filter_map(identity)
+            .collect();
+
+        if variant_errors.len() != 0 {
+            return Err(ErrorList(variant_errors));
+        }
+    }
+
     let sternum_impl = impl_sternum(&ast.ident);
     let display_impl = impl_display(&ast.ident, variants.iter(), &features);
     let from_str_impl = impl_from_str(&ast.ident, variants.iter(), &features);
@@ -98,7 +127,6 @@ fn impl_sternum(type_name: &syn::Ident) -> TokenStream {
 
     }
 }
-
 
 fn impl_display<'a, I>(type_name: &syn::Ident, variants: I, features: &FeatureSet) -> TokenStream
 where
@@ -152,13 +180,10 @@ where
             ident.to_string()
         };
 
-        let repr = if let Some(ref trans) = &features.transform {
-            match trans {
-                TransformKind::Uppercase => repr.to_uppercase(),
-                TransformKind::Lowercase => repr.to_lowercase(),
-            }
-        } else {
-            repr
+        let repr = match (&features.case_insensitive, &features.transform) {
+            (true, _) | (false, Some(TransformKind::Lowercase)) => repr.to_lowercase(),
+            (false, Some(TransformKind::Uppercase)) => repr.to_uppercase(),
+            (false, None) => repr,
         };
 
         let lit: syn::Lit = syn::LitStr::new(&repr, ident.span()).into();
@@ -168,12 +193,18 @@ where
         }
     });
 
+    let to_match = if features.case_insensitive {
+        quote! { s.to_lowercase() }
+    } else {
+        quote! { s }
+    };
+
     quote! {
         impl ::std::str::FromStr for #type_name {
             type Err = ::sternum::UnknownVariantError<#type_name>;
 
             fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
-                match s {
+                match &*#to_match {
                     #(#matches)*
                     _ => Err(::sternum::UnknownVariantError::new(s)),
                 }

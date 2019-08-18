@@ -97,6 +97,34 @@
 //!    );
 //!    ```
 //!
+//!    However, if two or more variants of the enumeration are equal after being transformed, a
+//!    compile error will be produced:
+//!
+//! 3. Case-Insensitive
+//!
+//!    By default, the generated `FromStr` implementations is case-sensitive. By providing the
+//!    `case_insensitive` attribute to the `#[sternum(...)]` attribute will allow for
+//!    case-insensitive parsing of variants. This attribute does not affect the `Display`
+//!    implementation in any way.
+//!
+//!    ```
+//!    # use sternum::Sternum;
+//!
+//!    #[derive(Debug, Eq, PartialEq, Sternum)]
+//!    #[sternum(case_insensitive)]
+//!    enum Enum {
+//!        Variant,
+//!    }
+//!
+//!    assert_eq!(Enum::Variant.to_string(), "Variant");
+//!    assert_eq!(str::parse::<Enum>("VARIANT"), Ok(Enum::Variant));
+//!    assert_eq!(str::parse::<Enum>("Variant"), Ok(Enum::Variant));
+//!    assert_eq!(str::parse::<Enum>("variant"), Ok(Enum::Variant));
+//!    ```
+//!
+//!    However, if two or more variants of the enumeration are equal in a case-insensitive
+//!    comparision, a compile error will be produced:
+//!
 //! ## `FromStr`
 //!
 //! Each `FromStr` implementation will use the

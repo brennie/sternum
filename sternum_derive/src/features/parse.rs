@@ -17,7 +17,12 @@ use syn::{Error, Ident, Token};
 /// [TokenStream]: ../proc-macro2/struct.TokenStream.html
 #[derive(Debug, Eq, PartialEq)]
 pub(super) enum RawFeature {
-    Scoped { ident: Ident },
+    CaseInsensitive {
+        ident: Ident,
+    },
+    Scoped {
+        ident: Ident,
+    },
     Transform {
         ident: Ident,
         eq: Token![=],
@@ -41,6 +46,7 @@ impl ToTokens for RawFeature {
         use RawFeature::*;
 
         match self {
+            CaseInsensitive { ref ident } => ident.to_tokens(tokens),
             Scoped { ref ident } => ident.to_tokens(tokens),
             Transform {
                 ref ident,
@@ -63,15 +69,15 @@ impl Parse for RawFeature {
         let ident_name = ident.to_string();
 
         let feature = match &*ident_name {
+            "case_insensitive" => CaseInsensitive { ident },
+
             "scoped" => Scoped { ident },
 
-            "transform" => {
-                Transform {
-                    ident,
-                    eq: input.parse()?,
-                    value: input.parse()?,
-                }
-            }
+            "transform" => Transform {
+                ident,
+                eq: input.parse()?,
+                value: input.parse()?,
+            },
 
             _ => {
                 return Err(Error::new_spanned(

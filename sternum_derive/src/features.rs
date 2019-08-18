@@ -19,6 +19,7 @@ use crate::features::parse::{RawFeature, RawFeatures};
 /// The set of features that the Sternum derive should use.
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct FeatureSet {
+    pub case_insensitive: bool,
     pub scoped: bool,
     pub transform: Option<TransformKind>,
 }
@@ -47,6 +48,7 @@ impl TryFrom<RawFeature> for Feature {
 
     fn try_from(raw: RawFeature) -> Result<Self, Self::Error> {
         let kind = match raw {
+            RawFeature::CaseInsensitive { .. } => FeatureKind::CaseInsensitive,
             RawFeature::Scoped { .. } => FeatureKind::Scoped,
             RawFeature::Transform { ref value, .. } => {
                 let trans = match &*value.to_string() {
@@ -61,10 +63,7 @@ impl TryFrom<RawFeature> for Feature {
             }
         };
 
-        Ok(Feature {
-            kind,
-            raw,
-        })
+        Ok(Feature { kind, raw })
     }
 }
 
@@ -75,6 +74,7 @@ impl TryFrom<RawFeature> for Feature {
 /// [FeatureSet]: struct.FeatureSet.html
 #[derive(Debug, Eq, PartialEq)]
 enum FeatureKind {
+    CaseInsensitive,
     Scoped,
     Transform(TransformKind),
 }
@@ -87,6 +87,10 @@ impl FeatureSet {
         use FeatureKind::*;
 
         match f.kind {
+            CaseInsensitive => {
+                self.case_insensitive = true;
+            }
+
             Scoped => {
                 self.scoped = true;
             }
@@ -99,7 +103,7 @@ impl FeatureSet {
                 }
 
                 None => self.transform = Some(trans),
-            }
+            },
         }
 
         Ok(())

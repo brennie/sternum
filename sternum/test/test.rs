@@ -17,4 +17,5 @@ fn compile() {
     t.pass("test/compile/redefine-std.rs");
     t.compile_fail("test/compile/require-enum-variants.rs");
     t.compile_fail("test/compile/invalid-attributes.rs");
+    t.compile_fail("test/compile/case-insensitive-variants.rs");
 }
